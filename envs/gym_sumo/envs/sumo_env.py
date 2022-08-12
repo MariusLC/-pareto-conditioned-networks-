@@ -1,4 +1,4 @@
-from gym_sumo.envs.sumo import TrafficLightSumoEnv
+from envs.gym_sumo.envs.sumo import TrafficLightSumoEnv
 import os
 
 

@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import cv2
 import numpy as np
+from envs.moral.gym_wrapper import *
+# randomized_v3
 
 
 class ScaleRewardEnv(gym.RewardWrapper):
@@ -91,30 +93,7 @@ class MinecartWrapper(gym.ObservationWrapper):
         return state
 
 
-class DSTModel(nn.Module):
 
-    def __init__(self, nA, scaling_factor, n_hidden=64):
-        super(DSTModel, self).__init__()
-
-        self.scaling_factor = scaling_factor
-        self.s_emb = nn.Sequential(nn.Linear(110, 64),
-                                   nn.Sigmoid())
-        self.c_emb = nn.Sequential(nn.Linear(3, 64),
-                                   nn.Sigmoid())
-        self.fc = nn.Sequential(nn.Linear(64, nA),
-                                nn.LogSoftmax(1))
-
-    def forward(self, state, desired_return, desired_horizon):
-        c = torch.cat((desired_return, desired_horizon), dim=-1)
-        # commands are scaled by a fixed factor
-        c = c*self.scaling_factor
-        # convert state index to one-hot encoding for Deep Sea Treasure
-        state = F.one_hot(state.long(), num_classes=110).to(state.device).float()
-        s = self.s_emb(state)
-        c = self.c_emb(c)
-        # element-wise multiplication of state-embedding and command
-        log_prob = self.fc(s*c)
-        return log_prob
 
 
 class WalkroomModel(nn.Module):
@@ -215,6 +194,76 @@ class SumoModel(nn.Module):
         log_prob = self.fc(s*c)
         return log_prob
 
+class DSTModel(nn.Module):
+
+    def __init__(self, nA, scaling_factor, n_hidden=64):
+        super(DSTModel, self).__init__()
+
+        self.scaling_factor = scaling_factor
+        self.s_emb = nn.Sequential(nn.Linear(110, 64),
+                                   nn.Sigmoid())
+        self.c_emb = nn.Sequential(nn.Linear(3, 64),
+                                   nn.Sigmoid())
+        self.fc = nn.Sequential(nn.Linear(64, nA),
+                                nn.LogSoftmax(1))
+
+    def forward(self, state, desired_return, desired_horizon):
+        # print("desired_return = ", desired_return)
+        # print("desired_horizon = ", desired_horizon)
+        c = torch.cat((desired_return, desired_horizon), dim=-1)
+        # print("c = ", c.shape)
+        # commands are scaled by a fixed factor
+        # print("self.scaling_factor = ", self.scaling_factor.shape)
+        c = c*self.scaling_factor
+        # print("c = ", c)
+        # convert state index to one-hot encoding for Deep Sea Treasure
+        # print("state dim = ", state.shape)
+        # print("state = ", state[10:])
+        state = F.one_hot(state.long(), num_classes=110).to(state.device).float()
+        # print("state dim = ", state.shape)
+        # print("state = ", state[10:][0])
+        # print("state = ", state[0][10:])
+        s = self.s_emb(state)
+        # print("s dim = ", s.shape)
+        c = self.c_emb(c)
+        # print("c dim = ", c.shape)
+        # element-wise multiplication of state-embedding and command
+        # print("\n\nforward")
+        # print("state = ", s)
+        # print("res_c = ", c)
+        log_prob = self.fc(s*c)
+        # print("log_prob shape = ", log_prob.shape)
+        # print("log_prob = ", log_prob)
+        return log_prob
+
+
+class MORALModel(nn.Module):
+
+    def __init__(self, nA, scaling_factor, n_hidden=64):
+        super(MORALModel, self).__init__()
+
+        self.scaling_factor = scaling_factor
+        self.s_emb = nn.Sequential(nn.Linear(110, 64),
+                                   nn.Sigmoid())
+        self.c_emb = nn.Sequential(nn.Linear(3, 64),
+                                   nn.Sigmoid())
+        self.fc = nn.Sequential(nn.Linear(64, nA),
+                                nn.LogSoftmax(1))
+
+    def forward(self, state, desired_return, desired_horizon):
+        c = torch.cat((desired_return, desired_horizon), dim=-1)
+        c = c*self.scaling_factor
+        print("state dim = ", state.shape)
+        print("state dim = ", state[0].shape)
+        print("state dim = ", state[0][0].shape)
+        print("state dim = ", state[0][0][0].shape)
+        print("state dim = ", state[0][0][0][0].shape)
+        print("state = ", state)
+        s = self.s_emb(state)
+        c = self.c_emb(c)
+        log_prob = self.fc(s*c)
+        return log_prob
+
 
 if __name__ == '__main__':
     import envs
@@ -287,6 +336,46 @@ if __name__ == '__main__':
 
         model = SumoModel(nA, scaling_factor).to(device)
         lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-3, 2e6, 1024, 50, 50, 50
+
+    if args.env == 'moral':
+        # Create Environment
+        # env = make_env('randomized_v3', 0)()
+        env = GymWrapper('randomized_v3')
+        states = env.reset()
+        states_tensor = torch.tensor(states).float().to(device)
+
+        # Fetch Shapes
+        n_actions = env.action_space.n
+        obs_shape = env.observation_space.shape
+        state_shape = obs_shape[:-1]
+        in_channels = obs_shape[-1]
+
+        # # Initialize Models
+        # print('Initializing and Normalizing Rewards...')
+        # ppo = PPO(state_shape=state_shape, in_channels=in_channels, n_actions=n_actions).to(device)
+        # optimizer = torch.optim.Adam(ppo.parameters(), lr=config.lr_ppo)
+
+        MAX_STEPS = envs.moral.randomized_v3.MAX_STEPS
+        N_MAIL = envs.moral.randomized_v3.N_MAIL
+        N_CITIZEN = envs.moral.randomized_v3.N_CITIZEN
+        N_STREET = envs.moral.randomized_v3.N_STREET
+        N_VASE = envs.moral.randomized_v3.N_VASE
+
+
+        # env = gym.make('randomized-v3')
+        # env = TimeLimit(env, MAX_STEPS)
+        nA = n_actions
+        #######
+        # ref_point = np.array([0, -200.])
+        # scaling_factor = torch.tensor([[0.1, 0.1, 0.01]]).to(device)
+        ref_point = np.array([0, 0])
+        scaling_factor = torch.tensor([[1., 1., 1., 1., 1.]]).to(device)
+        max_return = np.array([N_MAIL, N_CITIZEN, N_STREET, 0])
+        #######
+
+        model = MORALModel(nA, scaling_factor).to(device)
+        lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 256, 10, 50, 200
+
 
     env.nA = nA
 

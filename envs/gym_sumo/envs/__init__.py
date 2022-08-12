@@ -1,1 +1,1 @@
-from gym_sumo.envs.sumo_env import CrossroadSumoEnv
+from envs.gym_sumo.envs.sumo_env import CrossroadSumoEnv

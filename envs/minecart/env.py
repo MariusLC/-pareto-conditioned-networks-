@@ -1,4 +1,6 @@
-from gym.envs.multi_objective.minecart.minecart import Minecart
+# from gym.envs.multi_objective.minecart.minecart import Minecart
+from envs.minecart.minecart import Minecart
+
 import os
 
 

@@ -4,17 +4,40 @@ from envs.minecart.env import MinecartEnv, MinecartDeterministicEnv, MinecartSim
 
 from gym.envs.registration import register
 
+# MORAL
+register(
+    id='randomized-v3',
+    entry_point='envs:GymWrapper',
+    )
+
 # DST
 register(
     id='DeepSeaTreasure-v0',
     entry_point='envs:DeepSeaTreasureEnv',
     )
 
-# Minecart env
+# Minecart envs
 register(
-    id='DeepSeaTreasure-v0',
-    entry_point='envs:DeepSeaTreasureEnv',
+    id='MinecartDeterministic-v0',
+    entry_point='envs:MinecartDeterministicEnv',
     )
+
+register(
+    id='MinecartSimpleDeterministic-v0',
+    entry_point='envs:MinecartSimpleDeterministicEnv',
+    )
+
+register(
+    id='Minecart-v0',
+    entry_point='envs:MinecartEnv',
+    )
+
+# # Minecart env
+# register(
+#     id='DeepSeaTreasure-v0',
+#     entry_point='envs:DeepSeaTreasureEnv',
+#     )
+
 
 # SUMO env
 register(

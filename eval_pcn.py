@@ -68,6 +68,16 @@ if __name__ == '__main__':
     import pathlib
     import h5py
 
+    import envs
+    # import torch
+    # from gym.wrappers import TimeLimit
+    # import argparse
+    # from pcn.pcn import train
+    # from datetime import datetime
+    # import uuid
+    # import os
+    # from main_mones import MultiOneHotEnv
+
     parser = argparse.ArgumentParser(description='PCN')
     parser.add_argument('model', type=str, help='load model')
     parser.add_argument('--interactive', action='store_true', help='interactive policy selection')

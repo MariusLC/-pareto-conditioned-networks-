@@ -112,6 +112,7 @@ def run_episode(env, model, desired_return, desired_horizon, max_return):
     obs = env.reset()
     done = False
     while not done:
+        print("obs = ", obs)
         action = choose_action(model, obs, desired_return, desired_horizon)
         n_obs, reward, done, _ = env.step(action)
 
@@ -277,7 +278,9 @@ def train(env,
             logger.put(f'train/return/{o}/desired', np.mean(np.array(returns)[:, o]), step, 'scalar')
             logger.put(f'train/return/{o}/distance', np.linalg.norm(np.mean(np.array(returns)[:, o])-desired_return[o]), step, 'scalar')
         print(f'step {step} \t return {np.mean(returns, axis=0)}, ({np.std(returns, axis=0)}) \t loss {np.mean(loss):.3E}')
+        
         if step >= (n_checkpoints+1)*total_steps/100:
+            # print("\n\nSAVE : "+str(f'{logger.logdir}/model_{n_checkpoints+1}.pt'))
             torch.save(model, f'{logger.logdir}/model_{n_checkpoints+1}.pt')
             n_checkpoints += 1
 
