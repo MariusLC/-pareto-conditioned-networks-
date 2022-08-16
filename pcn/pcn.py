@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pygmo import hypervolume
 from logger import Logger
+# from eval_pcn import run_eval
 
 
 def crowding_distance(points):
@@ -63,6 +64,9 @@ def nlargest(n, experience_replay, threshold=.2):
     distances = crowding_distance(returns)
     sma = np.argwhere(distances <= threshold).flatten()
 
+    # print("returns = ", returns)
+    # print("distances = ", distances)
+
     nd_i = get_non_dominated(returns)
     nd = returns[nd_i]
     # we will compute distance of each point with each non-dominated point,
@@ -70,6 +74,7 @@ def nlargest(n, experience_replay, threshold=.2):
     returns_exp = np.tile(np.expand_dims(returns, 1), (1, len(nd), 1))
     # distance to closest nd point
     l2 = np.min(np.linalg.norm(returns_exp-nd, axis=-1), axis=-1)*-1
+    # print("distances nd = ", l2)
     # all points that are too close together (crowding distance < threshold) get a penalty
     nd_i = np.nonzero(nd_i)[0]
     _, unique_i = np.unique(nd, axis=0, return_index=True)
@@ -79,8 +84,12 @@ def nlargest(n, experience_replay, threshold=.2):
     l2[duplicates] -= 1e-5
     l2[sma] *= 2
 
+    # print("final l2 = ", l2)
+
     sorted_i = np.argsort(l2)
     largest = [experience_replay[i] for i in sorted_i[-n:]]
+
+    # print("largest = ", np.array([e[2][0].reward for e in largest]))
     # before returning largest elements, update all distances in heap
     for i in range(len(l2)):
         experience_replay[i] = (l2[i], experience_replay[i][1], experience_replay[i][2])
@@ -95,8 +104,19 @@ def add_episode(transitions, experience_replay, gamma=1., max_size=100, step=0):
     # heap is sorted by negative distance, (updated in nlargest)
     # put positive number to ensure that new item stays in the heap
     if len(experience_replay) == max_size:
-        heapq.heappushpop(experience_replay, (1, step, transitions))
+        pop = heapq.heappushpop(experience_replay, (1, step, transitions))
+        print("pop = ", [pop[0], pop[1], pop[2][0].reward])
+        print("push = ", [1, step, transitions[0].reward])
+
+        # ref_p = np.array([0, 0, 0, -8])*-1
+        # hv = hypervolume([pop[2][0].reward*-1])
+        # hv_pop = hv.compute(ref_p)
+        # hv = hypervolume([transitions[0].reward*-1])
+        # hv_push = hv.compute(ref_p)
+        # print("hv_pop = ", hv_pop)
+        # print("hv_push = ", hv_push)
     else:
+        print("push = ", [1, step, transitions[0].reward])
         heapq.heappush(experience_replay, (1, step, transitions))
 
 def choose_action(model, obs, desired_return, desired_horizon):
@@ -112,7 +132,7 @@ def run_episode(env, model, desired_return, desired_horizon, max_return):
     obs = env.reset()
     done = False
     while not done:
-        print("obs = ", obs)
+        # print("obs = ", obs)
         action = choose_action(model, obs, desired_return, desired_horizon)
         n_obs, reward, done, _ = env.step(action)
 
@@ -234,6 +254,14 @@ def train(env,
         # add episode in-place
         add_episode(transitions, experience_replay, gamma=gamma, max_size=max_size, step=step)
     while step < total_steps:
+
+        ### PRINT BATCH
+        rew = np.array([t[2][0].reward for t in experience_replay])
+        non_dom = get_non_dominated(rew)
+        # print("rews = ", rew)
+        print("non_dom = ", rew[non_dom])
+        #####
+
         loss = []
         entropy = []
         for _ in range(n_model_updates):
@@ -248,12 +276,26 @@ def train(env,
          # get all leaves, contain biggest elements, experience_replay got heapified in choose_commands
         leaves_r = np.array([e[2][0].reward for e in experience_replay[len(experience_replay)//2:]])
         leaves_h = np.array([len(e[2]) for e in experience_replay[len(experience_replay)//2:]])
+
+        ## EVAL AFTER UPDATE
+        # env_string = "moral" # TODO
+        # run_eval(env_string, model, leaves_r, leaves_h)
+
+        e_r, e_dr, e_d = eval(env, model, experience_replay, max_return, gamma=gamma)
+        s = 'desired return vs evaluated return\n'+33*'='+'\n'
+        for i in range(len(e_r)):
+            s += f'{e_dr[i]}  \t  {e_r[i]}  \n'
+        print(s)
+        ####
+
         try:
             if len(experience_replay) == max_size:
                 logger.put('train/leaves/r', leaves_r, step, f'{leaves_r.shape[-1]}d')
                 logger.put('train/leaves/h', leaves_h, step, f'{leaves_h.shape[-1]}d')
             hv = hypervolume(leaves_r*-1)
             hv_est = hv.compute(ref_point*-1)
+            # hv_est = hv.compute(ref_point)
+            print("hv_est = ", hv_est)
             logger.put('train/hypervolume', hv_est, step, 'scalar')
         except ValueError:
             pass

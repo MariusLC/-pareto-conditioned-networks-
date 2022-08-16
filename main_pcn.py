@@ -219,7 +219,11 @@ class DSTModel(nn.Module):
         # convert state index to one-hot encoding for Deep Sea Treasure
         # print("state dim = ", state.shape)
         # print("state = ", state[10:])
+        print("state shape = ", state.shape)
+        print("state = ", state)
         state = F.one_hot(state.long(), num_classes=110).to(state.device).float()
+        print("state = ", state)
+        print("state shape = ", state.shape)
         # print("state dim = ", state.shape)
         # print("state = ", state[10:][0])
         # print("state = ", state[0][10:])
@@ -239,27 +243,75 @@ class DSTModel(nn.Module):
 
 class MORALModel(nn.Module):
 
+    # def __init__(self, nA, scaling_factor, n_hidden=64):
+    #     super(MORALModel, self).__init__()
+
+    #     self.scaling_factor = scaling_factor
+    #     # self.s_emb = nn.Sequential(nn.Linear(110, 64),
+    #     #                            nn.Sigmoid())
+    #     self.s_emb = nn.Sequential(nn.Linear(1536, 64),
+    #                                nn.Sigmoid())
+    #     self.c_emb = nn.Sequential(nn.Linear(3, 64),
+    #                                nn.Sigmoid())
+    #     self.fc = nn.Sequential(nn.Linear(64, nA),
+    #                             nn.LogSoftmax(1))
+
     def __init__(self, nA, scaling_factor, n_hidden=64):
         super(MORALModel, self).__init__()
 
         self.scaling_factor = scaling_factor
-        self.s_emb = nn.Sequential(nn.Linear(110, 64),
+        self.s_emb = nn.Sequential(
+            nn.Conv2d(6, 32, kernel_size=2, stride=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=2, stride=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=2, stride=1),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(10816, 64),
+            nn.Sigmoid()
+        )
+        # self.s_emb_1 = nn.Conv2d(6, 32, kernel_size=2, stride=1)
+        # self.s_emb_2 = nn.ReLU()
+        # self.s_emb_3 = nn.Conv2d(32, 64, kernel_size=2, stride=1)
+        # self.s_emb_4 = nn.ReLU()
+        # self.s_emb_5 = nn.Conv2d(64, 64, kernel_size=2, stride=1)
+        # self.s_emb_6 = nn.ReLU()
+        # self.s_emb_7 = nn.Flatten()
+        # self.s_emb_8 = nn.Linear(10816, 64)
+        # self.s_emb_9 = nn.Sigmoid()
+
+        self.c_emb = nn.Sequential(nn.Linear(5, 64),
                                    nn.Sigmoid())
-        self.c_emb = nn.Sequential(nn.Linear(3, 64),
-                                   nn.Sigmoid())
-        self.fc = nn.Sequential(nn.Linear(64, nA),
+        self.fc = nn.Sequential(nn.Linear(64, 64),
+                                nn.ReLU(),
+                                nn.Linear(64, nA),
                                 nn.LogSoftmax(1))
 
     def forward(self, state, desired_return, desired_horizon):
+        # print("state dim 1 = ", state.shape)
+        # s = self.s_emb_1(state)
+        # print("state dim 2 = ", s.shape)
+        # s = self.s_emb_2(s)
+        # print("state dim 3 = ", s.shape)
+        # s = self.s_emb_3(s)
+        # print("state dim 4 = ", s.shape)
+        # s = self.s_emb_4(s)
+        # print("state dim 5 = ", s.shape)
+        # s = self.s_emb_5(s)
+        # print("state dim 6 = ", s.shape)
+        # s = self.s_emb_6(s)
+        # print("state dim 7 = ", s.shape)
+        # s = self.s_emb_7(s)
+        # print("state dim 8 = ", s.shape)
+        # s = self.s_emb_8(s)
+        # print("state dim 9 = ", s.shape)
+        # s = self.s_emb_9(s)
+        # print("state dim 10 = ", s.shape)
+        s = self.s_emb(state)
+
         c = torch.cat((desired_return, desired_horizon), dim=-1)
         c = c*self.scaling_factor
-        print("state dim = ", state.shape)
-        print("state dim = ", state[0].shape)
-        print("state dim = ", state[0][0].shape)
-        print("state dim = ", state[0][0][0].shape)
-        print("state dim = ", state[0][0][0][0].shape)
-        print("state = ", state)
-        s = self.s_emb(state)
         c = self.c_emb(c)
         log_prob = self.fc(s*c)
         return log_prob
@@ -304,7 +356,6 @@ if __name__ == '__main__':
         ref_point = np.ones(nO)*-env.size
         scaling_factor = torch.tensor([[0.1]*nO+[0.01]]).to(device)
         max_return = np.zeros(nO)
-
         model = WalkroomModel(env.size*nO, nA, nO, scaling_factor)
         avg_ep_steps = 18 if nO <= 5 else 9
         lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 100*nO*(300+100*nO), 256, 10, 50, 10*nO**3
@@ -350,10 +401,10 @@ if __name__ == '__main__':
         state_shape = obs_shape[:-1]
         in_channels = obs_shape[-1]
 
-        # # Initialize Models
-        # print('Initializing and Normalizing Rewards...')
-        # ppo = PPO(state_shape=state_shape, in_channels=in_channels, n_actions=n_actions).to(device)
-        # optimizer = torch.optim.Adam(ppo.parameters(), lr=config.lr_ppo)
+        print("n_actions = ", n_actions)
+        print("obs_shape = ", obs_shape)
+        print("state_shape = ", state_shape)
+        print("in_channels = ", in_channels)
 
         MAX_STEPS = envs.moral.randomized_v3.MAX_STEPS
         N_MAIL = envs.moral.randomized_v3.N_MAIL
@@ -368,13 +419,17 @@ if __name__ == '__main__':
         #######
         # ref_point = np.array([0, -200.])
         # scaling_factor = torch.tensor([[0.1, 0.1, 0.01]]).to(device)
-        ref_point = np.array([0, 0])
+        ref_point = np.array([0, 0, 0, -N_VASE])
         scaling_factor = torch.tensor([[1., 1., 1., 1., 1.]]).to(device)
-        max_return = np.array([N_MAIL, N_CITIZEN, N_STREET, 0])
+        max_return = np.array([N_MAIL, N_CITIZEN, N_STREET, -0])
         #######
 
         model = MORALModel(nA, scaling_factor).to(device)
-        lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 256, 10, 50, 200
+        # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 256, 10, 50, 200 # DST PARAMS
+        # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 256, 10, 50, 50 # TEST
+        # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-3, 2e6, 1024, 50, 50, 50 # SUMO PARAMS
+        lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 2e6, 1024, 100, 25, 50 # SUMO PARAMS
+
 
 
     env.nA = nA

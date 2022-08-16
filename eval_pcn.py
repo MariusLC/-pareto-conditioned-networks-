@@ -59,6 +59,91 @@ def run_episode(env, model, desired_return, desired_horizon, max_return):
     return transitions
 
 
+def run_eval(env, model, pareto_front, pareto_front_h):
+    if env == 'dst':
+        env = gym.make('DeepSeaTreasure-v0')
+        env = TimeLimit(env, 200)
+        max_treasure = np.amax(list(env.unwrapped._treasures().values()))
+        max_return = np.array([max_treasure, -1.])
+
+    elif env == 'minecart':
+        env = gym.make('MinecartDeterministic-v0')
+        env = TimeLimit(env, 1000)
+        max_return = np.array([1.5, 1.5, -0.])
+
+    elif env == 'sumo':
+        q_range = 10
+        env = gym.make('CrossroadSumo-v0')
+        env = TimeLimit(env, max_episode_steps=100)
+        env = FrameObservationEnv(env)
+        env = CHWEnv(env)
+        env = GrayscaleEnv(env)
+        env = HistoryEnv(env, size=4)
+        env = ScaleRewardEnv(env, min_=np.array([1.2, -0.9]), scale=90/q_range)
+        max_return = np.array([1.5, 1.5])*q_range
+    elif env == 'moral':
+        env = GymWrapper('randomized_v3')
+
+        MAX_STEPS = envs.moral.randomized_v3.MAX_STEPS
+        N_MAIL = envs.moral.randomized_v3.N_MAIL
+        N_CITIZEN = envs.moral.randomized_v3.N_CITIZEN
+        N_STREET = envs.moral.randomized_v3.N_STREET
+        N_VASE = envs.moral.randomized_v3.N_VASE
+        max_return = np.array([N_MAIL, N_CITIZEN, N_STREET, -0])
+
+    objectives = range(max_return.shape[-1])
+        
+    # ===================================
+    # LOAD SAVED ESTIMATE OF PARETO FRONT
+    # ===================================
+    _, pareto_front_i = non_dominated(pareto_front[:,objectives], return_indexes=True)
+    pareto_front = pareto_front[pareto_front_i]
+    pareto_front_h = pareto_front_h[pareto_front_i]
+
+    pf = np.argsort(pareto_front, axis=0)
+    pareto_front = pareto_front[pf[:,0]]
+    pareto_front_h = pareto_front_h[pf[:,0]]
+
+    print("pareto front = ", np.array(pareto_front))
+        
+
+    # ===================================
+    # EVAL LOOP
+    # ===================================
+    inp = -1
+    if not args.interactive:
+        (model_dir / 'policies-executions').mkdir(exist_ok=True)
+        print('='*38)
+        print('not interactive, this may take a while')
+        print('='*38)
+        all_returns = []
+    while True:
+        if args.interactive:
+            print('solutions: ')
+            for i, p in enumerate(pareto_front):
+                print(f'{i} : {p[objectives]}')
+            inp = input('-> ')
+            inp = int(inp)
+        else:
+            inp = inp+1
+            if inp >= len(pareto_front):
+                break
+        desired_return = pareto_front[inp]
+        desired_horizon = pareto_front_h[inp]
+
+        # assume deterministic env, one run is enough
+        transitions = run_episode(env, model, desired_return, desired_horizon, max_return)
+        # compute return
+        gamma = 1
+        for i in reversed(range(len(transitions)-1)):
+            transitions[i].reward += gamma * transitions[i+1].reward
+        return_ = transitions[0].reward.flatten()
+        print(f'ran model with desired-return: {desired_return.flatten()}, got {return_}')
+        if not args.interactive:
+            with open(model_dir / 'policies-executions' / f'policy_{inp}.txt', 'w') as f:
+                f.write(', '.join(str(r) for r in return_))
+
+
 if __name__ == '__main__':
     import argparse
     import uuid
@@ -67,6 +152,9 @@ if __name__ == '__main__':
     from gym.wrappers import TimeLimit
     import pathlib
     import h5py
+
+    from envs.moral.gym_wrapper import *
+    from main_pcn import *
 
     import envs
     # import torch
@@ -84,11 +172,13 @@ if __name__ == '__main__':
     parser.set_defaults(interactive=False)
     args = parser.parse_args()
     model_dir = pathlib.Path(args.model)
+
+    print()
         
     # ===================================
     # LOAD ENVIRONMENT
     # ===================================
-    envs = ('dst', 'minecart', 'sumo')
+    envs = ('dst', 'minecart', 'sumo', 'moral')
     env = [e for e in envs if e in str(model_dir)]
     assert len(env) == 1, 'log off unknown env'
     env = env[0]
@@ -113,15 +203,27 @@ if __name__ == '__main__':
         env = HistoryEnv(env, size=4)
         env = ScaleRewardEnv(env, min_=np.array([1.2, -0.9]), scale=90/q_range)
         max_return = np.array([1.5, 1.5])*q_range
+    elif env == 'moral':
+        env = GymWrapper('randomized_v3')
+
+        MAX_STEPS = envs.moral.randomized_v3.MAX_STEPS
+        N_MAIL = envs.moral.randomized_v3.N_MAIL
+        N_CITIZEN = envs.moral.randomized_v3.N_CITIZEN
+        N_STREET = envs.moral.randomized_v3.N_STREET
+        N_VASE = envs.moral.randomized_v3.N_VASE
+        max_return = np.array([N_MAIL, N_CITIZEN, N_STREET, -0])
+
     objectives = range(max_return.shape[-1])
         
     # ===================================
     # LOAD SAVED MODEL
     # ===================================
     log = model_dir / 'log.h5'
+    print("log = ", log)
     log = h5py.File(log)
     checkpoints = [str(p) for p in model_dir.glob('model_100.pt')]
     checkpoints = sorted(checkpoints)
+    print("checkpoints[-1] = ", checkpoints[-1])
     model = torch.load(checkpoints[-1])
         
     # ===================================
@@ -137,6 +239,8 @@ if __name__ == '__main__':
         pf = np.argsort(pareto_front, axis=0)
         pareto_front = pareto_front[pf[:,0]]
         pareto_front_h = pareto_front_h[pf[:,0]]
+
+        print("pareto front = ", np.array(pareto_front))
         
 
     # ===================================
