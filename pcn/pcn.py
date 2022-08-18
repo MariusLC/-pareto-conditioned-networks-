@@ -125,9 +125,9 @@ def choose_action(model, obs, desired_return, desired_horizon):
     desired_return = np.array(desired_return)
     desired_horizon = np.array(desired_horizon)
     ####
-    log_probs = model(torch.tensor([obs]).to(device),
-                      torch.tensor([desired_return]).to(device),
-                      torch.tensor([desired_horizon]).unsqueeze(1).to(device))
+    log_probs = model(torch.tensor(obs).to(device),
+                      torch.tensor(desired_return).to(device),
+                      torch.tensor(desired_horizon).unsqueeze(1).to(device))
     log_probs = log_probs.detach().cpu().numpy()[0]
     action = np.random.choice(np.arange(len(log_probs)), p=np.exp(log_probs))
     return action
