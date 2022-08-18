@@ -121,9 +121,9 @@ def add_episode(transitions, experience_replay, gamma=1., max_size=100, step=0):
 
 def choose_action(model, obs, desired_return, desired_horizon):
     ### TRYING SOMETHING FOR NDARRAY INTO TENSOR CONVERSION
-    obs = np.array(obs)
-    desired_return = np.array(desired_return)
-    desired_horizon = np.array(desired_horizon)
+    obs = np.array([obs])
+    desired_return = np.array([desired_return])
+    desired_horizon = np.array([desired_horizon])
     ####
     log_probs = model(torch.tensor(obs).to(device),
                       torch.tensor(desired_return).to(device),
