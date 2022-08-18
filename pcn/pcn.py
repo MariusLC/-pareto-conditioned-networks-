@@ -191,7 +191,8 @@ def update_model(model, opt, experience_replay, batch_size):
 
     ### TRYING SOMETHING FOR NDARRAY INTO TENSOR CONVERSION
     obs = np.array(obs)
-    # actions = np.array(actions)
+    desired_return = np.array(desired_return)
+    desired_horizon = np.array(desired_horizon)
     ####
     log_prob = model(torch.tensor(obs).to(device),
                      torch.tensor(desired_return).to(device),
