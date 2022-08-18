@@ -178,8 +178,8 @@ if __name__ == '__main__':
     # ===================================
     # LOAD ENVIRONMENT
     # ===================================
-    envs = ('dst', 'minecart', 'sumo', 'moral')
-    env = [e for e in envs if e in str(model_dir)]
+    envis = ('dst', 'minecart', 'sumo', 'moral')
+    env = [e for e in envis if e in str(model_dir)]
     assert len(env) == 1, 'log off unknown env'
     env = env[0]
     if env == 'dst':
@@ -221,6 +221,7 @@ if __name__ == '__main__':
     log = model_dir / 'log.h5'
     print("log = ", log)
     log = h5py.File(log)
+    # checkpoints = [str(p) for p in model_dir.glob('model_100.pt')]
     checkpoints = [str(p) for p in model_dir.glob('model_100.pt')]
     checkpoints = sorted(checkpoints)
     print("checkpoints[-1] = ", checkpoints[-1])

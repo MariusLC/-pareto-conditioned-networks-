@@ -188,6 +188,11 @@ def update_model(model, opt, experience_replay, batch_size):
         batch.append((s_t, a_t, r_t, h_t))
 
     obs, actions, desired_return, desired_horizon = zip(*batch)
+
+    ### TRYING SOMETHING FOR NDARRAY INTO TENSOR CONVERSION
+    obs = np.array(obs)
+    # actions = np.array(actions)
+    ####
     log_prob = model(torch.tensor(obs).to(device),
                      torch.tensor(desired_return).to(device),
                      torch.tensor(desired_horizon).unsqueeze(1).to(device))
@@ -281,11 +286,11 @@ def train(env,
         # env_string = "moral" # TODO
         # run_eval(env_string, model, leaves_r, leaves_h)
 
-        e_r, e_dr, e_d = eval(env, model, experience_replay, max_return, gamma=gamma)
-        s = 'desired return vs evaluated return\n'+33*'='+'\n'
-        for i in range(len(e_r)):
-            s += f'{e_dr[i]}  \t  {e_r[i]}  \n'
-        print(s)
+        # e_r, e_dr, e_d = eval(env, model, experience_replay, max_return, gamma=gamma)
+        # s = 'desired return vs evaluated return\n'+33*'='+'\n'
+        # for i in range(len(e_r)):
+        #     s += f'{e_dr[i]}  \t  {e_r[i]}  \n'
+        # print(s)
         ####
 
         try:
@@ -322,7 +327,7 @@ def train(env,
         print(f'step {step} \t return {np.mean(returns, axis=0)}, ({np.std(returns, axis=0)}) \t loss {np.mean(loss):.3E}')
         
         if step >= (n_checkpoints+1)*total_steps/100:
-            # print("\n\nSAVE : "+str(f'{logger.logdir}/model_{n_checkpoints+1}.pt'))
+            print("\n\nSAVE : "+str(f'{logger.logdir}/model_{n_checkpoints+1}.pt'))
             torch.save(model, f'{logger.logdir}/model_{n_checkpoints+1}.pt')
             n_checkpoints += 1
 
@@ -334,3 +339,6 @@ def train(env,
             logger.put('eval/return/value', e_r, step, f'{len(desired_return)}d')
             for o in range(len(desired_return)):
                 logger.put(f'eval/return/{o}/distance', e_d[o], step, 'scalar')
+
+            # Print eval
+            print(s)

@@ -48,8 +48,8 @@ class GymWrapper(gym.Env):
     def reset(self):
         if self.env_id == 'randomized_v3':
             self.game = envs.moral.randomized_v3.make_game()
-
         obs, _, _ = self.game.its_showtime()
+        # print(obs.board)
         return self._obs_to_np_array(obs)
 
     def step(self, action):

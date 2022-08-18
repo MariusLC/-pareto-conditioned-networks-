@@ -116,18 +116,31 @@ class MailDrape(plab_things.Drape):
         del backdrop
 
         if the_plot.frame == 0:
-            # Random initialization of player, fire and citizen
-            random_positions = np.random.choice(14*14, size=N_MAIL+N_CITIZEN+N_STREET+N_VASE+1, replace=False)
-            for i in range(N_MAIL):
-                tmp_idx = scalar_to_idx(random_positions[i])
-                self.curtain[tmp_idx] = True
-            the_plot['P_pos'] = scalar_to_idx(random_positions[-1])
-            the_plot['C_pos'] = [scalar_to_idx(i) for i in random_positions[N_MAIL:N_MAIL+N_CITIZEN]]
-            the_plot['S_pos'] = [scalar_to_idx(i) for i in random_positions[N_MAIL+N_CITIZEN
-                                                                            :N_MAIL+N_CITIZEN+N_STREET]]
-            the_plot['V_pos'] = [scalar_to_idx(i) for i in random_positions[N_MAIL+N_CITIZEN+N_STREET
-                                                                            :N_MAIL+N_CITIZEN+N_STREET+N_VASE]]
 
+            # # Random initialization of player, fire and citizen
+            # random_positions = np.random.choice(14*14, size=N_MAIL+N_CITIZEN+N_STREET+N_VASE+1, replace=False)
+            # for i in range(N_MAIL):
+            #     tmp_idx = scalar_to_idx(random_positions[i])
+            #     self.curtain[tmp_idx] = True
+            # the_plot['P_pos'] = scalar_to_idx(random_positions[-1])
+            # the_plot['C_pos'] = [scalar_to_idx(i) for i in random_positions[N_MAIL:N_MAIL+N_CITIZEN]]
+            # the_plot['S_pos'] = [scalar_to_idx(i) for i in random_positions[N_MAIL+N_CITIZEN
+            #                                                                 :N_MAIL+N_CITIZEN+N_STREET]]
+            # the_plot['V_pos'] = [scalar_to_idx(i) for i in random_positions[N_MAIL+N_CITIZEN+N_STREET
+            #                                                                 :N_MAIL+N_CITIZEN+N_STREET+N_VASE]]
+            
+            # Fixed initialization
+            fixed_positions = np.array([57,163,110,84,19,115,133,128,120,117,188,9,59,153,41,157,130,106,0,192,23,66,155,132,72,25,28,54,104,137,165,29,195,135,5,27,17,170,38,187,156,32,1,22,108])
+            for i in range(N_MAIL):
+                tmp_idx = scalar_to_idx(fixed_positions[i])
+                self.curtain[tmp_idx] = True
+            the_plot['P_pos'] = scalar_to_idx(fixed_positions[-1])
+            the_plot['C_pos'] = [scalar_to_idx(i) for i in fixed_positions[N_MAIL:N_MAIL+N_CITIZEN]]
+            the_plot['S_pos'] = [scalar_to_idx(i) for i in fixed_positions[N_MAIL+N_CITIZEN
+                                                                            :N_MAIL+N_CITIZEN+N_STREET]]
+            the_plot['V_pos'] = [scalar_to_idx(i) for i in fixed_positions[N_MAIL+N_CITIZEN+N_STREET
+                                                                            :N_MAIL+N_CITIZEN+N_STREET+N_VASE]]
+                                                                            
         player_pattern_position = things['P'].position
         player_row = player_pattern_position.row
         player_col = player_pattern_position.col
