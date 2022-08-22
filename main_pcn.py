@@ -438,7 +438,8 @@ if __name__ == '__main__':
         model = torch.load(args.model, map_location=device).to(device)
         model.scaling_factor = model.scaling_factor.to(device)
 
-    logdir = f'{os.getenv("LOGDIR", "/tmp")}/pcn/pcn/{args.env}/lr_{lr}/totalsteps_{total_steps}/batch_size_{batch_size}/n_model_updates_{n_model_updates}/n_er_episodes_{n_er_episodes}/max_size_{max_size}/'
+    logdir = f'/pcn/pcn/{args.env}/lr_{lr}/totalsteps_{total_steps}/batch_size_{batch_size}/n_model_updates_{n_model_updates}/n_er_episodes_{n_er_episodes}/max_size_{max_size}/'
+    # logdir = f'{os.getenv("LOGDIR", "/tmp")}/pcn/pcn/{args.env}/lr_{lr}/totalsteps_{total_steps}/batch_size_{batch_size}/n_model_updates_{n_model_updates}/n_er_episodes_{n_er_episodes}/max_size_{max_size}/'
     logdir += datetime.now().strftime('%Y-%m-%d_%H-%M-%S_') + str(uuid.uuid4())[:4] + '/'
 
     train(env,
