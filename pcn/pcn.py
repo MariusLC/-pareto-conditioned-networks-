@@ -252,6 +252,7 @@ def train(env,
     opt = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     path = pathlib.Path(__file__).parent.resolve()
+    print("path = ", path)
     path_2 = str(path) + str(logdir)
     print("MKDIR = ", path_2)
     # os.mkdir(path_2)
@@ -260,7 +261,9 @@ def train(env,
     print(os.listdir(str(path)))
     print(os.listdir(str(path)+"/moral"))
 
-    logger = Logger(logdir=logdir)
+    logdir_2 = '/pcn'+str(logdir)
+
+    logger = Logger(logdir=logdir_2)
     n_checkpoints = 0
     # fill buffer with random episodes
     experience_replay = []
