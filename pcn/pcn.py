@@ -249,7 +249,12 @@ def train(env,
     step = 0
     total_episodes = n_er_episodes
     opt = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    os.mkdir(logdir)
+
+    path = pathlib.Path(__file__).parent.resolve()
+    path_2 = str(path) + str(logdir)
+    print("MKDIR = ", path_2)
+    os.mkdir(path_2)
+
     logger = Logger(logdir=logdir)
     n_checkpoints = 0
     # fill buffer with random episodes
