@@ -258,6 +258,7 @@ def train(env,
     os.makedirs(path_2)
     print(os.listdir())
     print(os.listdir(str(path)))
+    print(os.listdir(str(path)+"/moral"))
 
     logger = Logger(logdir=logdir)
     n_checkpoints = 0
