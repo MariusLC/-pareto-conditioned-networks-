@@ -426,9 +426,9 @@ if __name__ == '__main__':
 
         model = MORALModel(nA, scaling_factor).to(device)
         # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 256, 10, 50, 200 # DST PARAMS
-        lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e4, 256, 10, 50, 50 # TEST
+        # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e4, 256, 10, 50, 50 # TEST
         # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-3, 2e6, 1024, 50, 50, 50 # SUMO PARAMS
-        # lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 1024, 100, 25, 50 # EDITED PARAMS
+        lr, total_steps, batch_size, n_model_updates, n_er_episodes, max_size = 1e-2, 1e5, 1024, 100, 25, 50 # EDITED PARAMS
 
 
 
