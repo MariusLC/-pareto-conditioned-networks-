@@ -249,6 +249,7 @@ def train(env,
     step = 0
     total_episodes = n_er_episodes
     opt = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    os.mkdir(logdir)
     logger = Logger(logdir=logdir)
     n_checkpoints = 0
     # fill buffer with random episodes
@@ -335,8 +336,6 @@ def train(env,
         
         if step >= (n_checkpoints+1)*total_steps/100:
             print("\n\nSAVE : "+str(f'{logger.logdir}/model_{n_checkpoints+1}.pt'))
-
-            os.mkdir(logger.logdir)
             torch.save(model, f'{logger.logdir}/model_{n_checkpoints+1}.pt')
             n_checkpoints += 1
 
