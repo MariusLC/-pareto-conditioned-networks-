@@ -263,7 +263,7 @@ def train(env,
 
     logdir_2 = '/pcn'+str(logdir)
 
-    logger = Logger(logdir=logdir_2)
+    logger = Logger(logdir=path_2)
     n_checkpoints = 0
     # fill buffer with random episodes
     experience_replay = []
