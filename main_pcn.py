@@ -420,7 +420,7 @@ if __name__ == '__main__':
         # ref_point = np.array([0, -200.])
         # scaling_factor = torch.tensor([[0.1, 0.1, 0.01]]).to(device)
         ref_point = np.array([0, 0, 0, -N_VASE])
-        scaling_factor = torch.tensor([[1., 1., 1., 1., 1.]]).to(device)
+        scaling_factor = torch.tensor([[1., 1., 1., 1., 0.1]]).to(device)
         max_return = np.array([N_MAIL, N_CITIZEN, N_STREET, -0])
         #######
 
