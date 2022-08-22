@@ -256,6 +256,8 @@ def train(env,
     print("MKDIR = ", path_2)
     # os.mkdir(path_2)
     os.makedirs(path_2)
+    print(os.listdir())
+    print(os.listdir(str(path)))
 
     logger = Logger(logdir=logdir)
     n_checkpoints = 0
