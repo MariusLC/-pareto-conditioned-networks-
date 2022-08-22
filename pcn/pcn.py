@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from pygmo import hypervolume
 from logger import Logger
 # from eval_pcn import run_eval
+import os
 
 
 def crowding_distance(points):
@@ -334,6 +335,8 @@ def train(env,
         
         if step >= (n_checkpoints+1)*total_steps/100:
             print("\n\nSAVE : "+str(f'{logger.logdir}/model_{n_checkpoints+1}.pt'))
+
+            os.mkdir(logger.logdir)
             torch.save(model, f'{logger.logdir}/model_{n_checkpoints+1}.pt')
             n_checkpoints += 1
 
