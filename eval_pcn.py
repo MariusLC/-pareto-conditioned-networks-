@@ -34,8 +34,8 @@ def greedy_action(model, obs, desired_return, desired_horizon):
     ####
     print("desired_horizon = ", desired_horizon)
     print("desired_return = ", desired_return)
-    print("desired_horizon = ", torch.tensor(np.array(desired_horizon)))
-    print("desired_return = ", torch.tensor(np.array([desired_return])))
+    print("desired_horizon = ", torch.tensor(desired_horizon))
+    print("desired_return = ", torch.tensor([desired_return]))
     log_probs = model(torch.tensor([obs]).to(device),
                       torch.tensor([desired_return]).to(device),
                       torch.tensor([desired_horizon]).unsqueeze(1).to(device))
