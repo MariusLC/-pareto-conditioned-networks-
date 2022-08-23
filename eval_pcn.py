@@ -30,8 +30,8 @@ def greedy_action(model, obs, desired_return, desired_horizon):
     print("obs = ", obs)
     ### TRYING SOMETHING FOR NDARRAY INTO TENSOR CONVERSION
     # obs = np.array(obs)
-    desired_return = np.array(desired_return)
-    desired_horizon = np.array(desired_horizon)
+    # desired_return = np.array(desired_return)
+    # desired_horizon = np.array(desired_horizon)
     ####
     print("obs = ", obs)
     print("desired_horizon = ", desired_horizon)
