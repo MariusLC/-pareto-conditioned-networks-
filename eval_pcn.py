@@ -27,15 +27,18 @@ def non_dominated(solutions, return_indexes=False):
 def greedy_action(model, obs, desired_return, desired_horizon):
     print("desired_horizon = ", desired_horizon)
     print("desired_return = ", desired_return)
+    print("obs = ", obs)
     ### TRYING SOMETHING FOR NDARRAY INTO TENSOR CONVERSION
     obs = np.array(obs)
     desired_return = np.array(desired_return)
     desired_horizon = np.array(desired_horizon)
     ####
+    print("obs = ", obs)
     print("desired_horizon = ", desired_horizon)
     print("desired_return = ", desired_return)
     print("desired_horizon = ", torch.tensor(desired_horizon))
     print("desired_return = ", torch.tensor([desired_return]))
+    print("obs = ", torch.tensor([obs]).to(device))
     log_probs = model(torch.tensor([obs]).to(device),
                       torch.tensor([desired_return]).to(device),
                       torch.tensor([desired_horizon]).unsqueeze(1).to(device))
