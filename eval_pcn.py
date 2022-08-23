@@ -226,7 +226,7 @@ if __name__ == '__main__':
     log = model_dir / 'log.h5'
     print("log = ", log)
     log = h5py.File(log)
-    checkpoints = [str(p) for p in model_dir.glob('model_55.pt')]
+    checkpoints = [str(p) for p in model_dir.glob('model_57.pt')]
     # checkpoints = [str(p) for p in model_dir.glob('model_100.pt')]
     checkpoints = sorted(checkpoints)
     print("checkpoints[-1] = ", checkpoints[-1])
